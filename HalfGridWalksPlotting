@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+def initialize_grid(n):
+    grid = np.full((n, n), -5, dtype=int)  # Initialize with all cells set to -5
+    center = n // 2
+    grid[center][center] = 0  # Place player at the center with length 0
+    return grid
+
+def random_walk(grid, steps):
+    import random
+    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # Right, Left, Down, Up
+    current_position = len(grid) // 2, len(grid) // 2  # Start at the center
+    visited = set()
+    visited.add(current_position)
+    grid[current_position[0]][current_position[1]] = 0
+    length = 0  # Initialize the length of the walk
+
+    for step in range(1, steps + 1):
+        possible_directions = []
+        for direction in directions:
+            new_position = (current_position[0] + direction[0], current_position[1] + direction[1])
+            if 0 <= new_position[0] < len(grid) and 0 <= new_position[1] < len(grid[0]) and new_position not in visited:
+                possible_directions.append(direction)
+
+        if possible_directions:
+            direction = random.choice(possible_directions)
+            new_position = (current_position[0] + direction[0], current_position[1] + direction[1])
+            grid[new_position[0]][new_position[1]] = step  # Mark the new position with current step number
+            current_position = new_position
+            visited.add(current_position)
+            length += 1  # Increment the length of the walk
+
+        else:
+            # print("Nowhere to go! Stopping.")
+            break
+
+    return length
+
+# Define the range of odd grid sizes and number of steps
+min_grid_size = 3
+max_grid_size = 15
+steps = max_grid_size * max_grid_size
+num_simulations = 100000  # Number of simulations to run
+
+# Dictionary to store frequency of walks with length 24 for each grid size
+frequency_full_dict = {}
+
+# Run simulations for each odd grid size
+for grid_size in tqdm(range(min_grid_size, max_grid_size + 1, 2)):
+    lengths_full = []  # List to store the lengths of walks with length 24
+
+    # Run simulations
+    for _ in range(num_simulations):
+        grid = initialize_grid(grid_size)
+        length = random_walk(grid, steps)
+        
+        if length > (grid_size * grid_size)/2:
+            lengths_full.append(length)
+
+    # Calculate frequency of length 24
+    frequency_full = len(lengths_full)
+    frequency_full_dict[grid_size] = frequency_full
+
+# Print out the frequencies for each grid size
+for grid_size, frequency in frequency_full_dict.items():
+    print("Grid size:", grid_size, "Frequency of walks filling half the grid:", frequency)
+
+
+import matplotlib.pyplot as plt
+
+# Extract grid sizes and frequencies
+grid_sizes = list(frequency_full_dict.keys())
+frequencies = [freq / num_simulations for freq in frequency_full_dict.values()]
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.bar(grid_sizes, frequencies, color='purple')
+plt.xlabel('Grid Size')
+plt.ylabel('Frequency of walks filling half the grid')
+plt.title('Frequency of walks filling half the grid for different grid sizes')
+plt.xticks(grid_sizes)
+plt.yscale('log')  # Set y-axis to logarithmic scale
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.tight_layout()
+plt.show()
