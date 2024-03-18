@@ -1,0 +1,52 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def initialize_grid(n):
+    grid = np.full((n, n), -5, dtype=int)  # Initialize with all cells set to -5
+    center = n // 2
+    grid[center][center] = 0  # Place player at the center with length 0
+    return grid
+
+def random_walk(grid, steps):
+    import random
+    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # Right, Left, Down, Up
+    current_position = len(grid) // 2, len(grid) // 2  # Start at the center
+    visited = set()
+    visited.add(current_position)
+    grid[current_position[0]][current_position[1]] = 0
+
+    for step in range(1, steps + 1):
+        possible_directions = []
+        for direction in directions:
+            new_position = (current_position[0] + direction[0], current_position[1] + direction[1])
+            if 0 <= new_position[0] < len(grid) and 0 <= new_position[1] < len(grid[0]) and new_position not in visited:
+                possible_directions.append(direction)
+
+        if possible_directions:
+            direction = random.choice(possible_directions)
+            new_position = (current_position[0] + direction[0], current_position[1] + direction[1])
+            grid[new_position[0]][new_position[1]] = step  # Mark the new position with current step number
+            current_position = new_position
+            visited.add(current_position)
+        else:
+            print("Nowhere to go! Stopping.")
+            break
+
+    return grid
+
+# Define the size of the grid and number of steps
+grid_size = 5
+steps = 20
+
+# Create and initialize the grid
+grid = initialize_grid(grid_size)
+
+# Perform random walk
+final_grid = random_walk(grid, steps)
+
+# Plot the colormap
+plt.figure(figsize=(8, 6))
+plt.imshow(final_grid, cmap='inferno', interpolation='nearest')
+plt.colorbar(label='Length')
+plt.title('Random Walk Colormap')
+plt.show()
